@@ -9,27 +9,58 @@
     android:paddingBottom="@dimen/activity_vertical_margin"
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
-    android:paddingTop="@dimen/activity_vertical_margin">
+    android:paddingTop="@dimen/activity_vertical_margin"
+    tools:context=".CentralActivity">
 
     <Button
         android:id="@+id/btn_central"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
+        android:layout_marginBottom="@dimen/activity_vertical_margin"
         android:onClick="onBtnScanBlueClient"
         android:text="扫描周围蓝牙设备"
-        android:textSize="24dp"
-        android:layout_marginBottom="10dp"/>
+        android:textSize="24dp" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="24dp"
+        android:gravity="center_vertical"
+        android:text="蓝牙列表："
+        android:textSize="16dp" />
 
     <GridLayout
         android:id="@+id/gl_central"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="0dp"
+        android:layout_marginBottom="@dimen/activity_vertical_margin"
+        android:layout_weight="2"
+        android:background="@drawable/border">
 
         <GridView
             android:id="@+id/gv_central"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"/>
+            android:layout_height="match_parent" />
     </GridLayout>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="24dp"
+        android:gravity="center_vertical"
+        android:text="日志："
+        android:textSize="16dp" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="3"
+        android:background="@drawable/border">
+
+        <TextView
+            android:id="@+id/tv_central"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:textSize="12dp" />
+    </ScrollView>
 
 </LinearLayout>

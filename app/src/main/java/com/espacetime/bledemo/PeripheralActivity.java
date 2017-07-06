@@ -35,9 +35,9 @@ import java.util.UUID;
  */
 
 public class PeripheralActivity extends AppCompatActivity {
-    final UUID SERVICE_UUID = fromShortValue(BluetoothClass.Device.WEARABLE_GLASSES);
-    final UUID READ_UUID = fromShortValue(BluetoothClass.Device.Major.WEARABLE | 0x20);
-    final UUID WRITE_UUID = fromShortValue(BluetoothClass.Device.Major.WEARABLE | 0x21);
+    public static final UUID SERVICE_UUID = fromShortValue(BluetoothClass.Device.WEARABLE_GLASSES);
+    public static final UUID READ_UUID = fromShortValue(BluetoothClass.Device.Major.WEARABLE | 0x20);
+    public static final UUID WRITE_UUID = fromShortValue(BluetoothClass.Device.Major.WEARABLE | 0x21);
 
     BluetoothManager mBluetoothManager;
     BluetoothGattServer bluetoothGattServer;

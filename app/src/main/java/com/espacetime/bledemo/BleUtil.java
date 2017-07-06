@@ -31,14 +31,12 @@ public class BleUtil {
     private static final String TAG = "BleUtil";
     private static final long SCAN_PERIOD = 10000;
 
-    public static String characterUUID1 = "0000fff2-0000-1000-8000-00805f9b34fb";//APP发送命令  
-    public static String characterUUID2 = "0000fff1-0000-1000-8000-00805f9b34fb";//BLE用于回复命令  
     public static byte[] workModel = {0x02, 0x01};
     private static String descriptorUUID = "00002902-0000-1000-8000-00805f9b34fb";//BLE设备特性的UUID
     private static BleUtil mInstance;
     private Context mContext;
     //作为中央来使用和处理数据；
-    private BluetoothGatt mGatt;
+    public BluetoothGatt mGatt;
 
     private BluetoothManager manager;
     private BTUtilListener mListener;
@@ -48,9 +46,9 @@ public class BleUtil {
     private List<BluetoothGattService> serviceList;//服务  
     private List<BluetoothGattCharacteristic> characterList;//特征  
 
-    private BluetoothGattService service;
-    private BluetoothGattCharacteristic character1;
-    private BluetoothGattCharacteristic character2;
+    public BluetoothGattService service;
+    public BluetoothGattCharacteristic readCharacteristic;
+    public BluetoothGattCharacteristic writeCharacteristic;
     //扫描设备的回调
     private BluetoothAdapter.LeScanCallback mLeScanCallback = new BluetoothAdapter.LeScanCallback() {
 
@@ -105,20 +103,27 @@ public class BleUtil {
             Log.d(TAG, "onServicesDiscovered");
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 serviceList = gatt.getServices();
+                service = null;
                 for (int i = 0; i < serviceList.size(); i++) {
                     BluetoothGattService theService = serviceList.get(i);
 
                     Log.e(TAG, "ServiceName:" + theService.getUuid());
+                    if(theService.getUuid().equals(PeripheralActivity.SERVICE_UUID)) {
+                        service = theService;
+                    }
                     characterList = theService.getCharacteristics();
                     for (int j = 0; j < characterList.size(); j++) {
-                        String uuid = characterList.get(j).getUuid().toString();
+                        UUID uuid = characterList.get(j).getUuid();
                         Log.e(TAG, "---CharacterName:" + uuid);
-                        if (uuid.equals(characterUUID1)) {
-                            character1 = characterList.get(j);
-                        } else if (uuid.equals(characterUUID2)) {
-                            character2 = characterList.get(j);
+                        if (uuid.equals(PeripheralActivity.READ_UUID)) {
+                            readCharacteristic = characterList.get(j);
+                        } else if (uuid.equals(PeripheralActivity.WRITE_UUID)) {
+                            writeCharacteristic = characterList.get(j);
                             setNotification();
                         }
+                    }
+                    if(service != null) {
+                        break;
                     }
                 }
             }
@@ -210,8 +215,8 @@ public class BleUtil {
 
     //获取设备指定的特征中的特性,其中对其进行监听, setCharacteristicNotification与上面的回调onCharacteristicChanged进行一一搭配  
     private void setNotification() {
-        mGatt.setCharacteristicNotification(character2, true);
-        BluetoothGattDescriptor descriptor = character2.getDescriptor(UUID.fromString(descriptorUUID));
+        mGatt.setCharacteristicNotification(writeCharacteristic, true);
+        BluetoothGattDescriptor descriptor = writeCharacteristic.getDescriptor(UUID.fromString(descriptorUUID));
         descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
         mGatt.writeDescriptor(descriptor);
     }
@@ -246,18 +251,18 @@ public class BleUtil {
 
     //发送进入工作模式请求  
     public void sendWorkModel() {
-        if (character1 != null) {
-            character1.setValue(workModel);
-            mGatt.writeCharacteristic(character1);
+        if (readCharacteristic != null) {
+            readCharacteristic.setValue(workModel);
+            mGatt.writeCharacteristic(readCharacteristic);
         }
     }
 
     //发送强度  
     public void sendStrength(int strength) {
         byte[] strengthModel = {0x01, (byte) strength};
-        if (character1 != null) {
-            character1.setValue(strengthModel);
-            mGatt.writeCharacteristic(character1);
+        if (readCharacteristic != null) {
+            readCharacteristic.setValue(strengthModel);
+            mGatt.writeCharacteristic(readCharacteristic);
         }
     }
 
@@ -281,6 +286,11 @@ public class BleUtil {
             listDevice = new ArrayList<>();
             mListener.onLeScanDevices(listDevice);
         }
+    }
+
+    public void destory() {
+        disConnGatt();
+        stopScan();
     }
 
     private void showToast(String message) {
