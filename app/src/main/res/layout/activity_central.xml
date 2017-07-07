@@ -15,18 +15,25 @@
     <Button
         android:id="@+id/btn_central"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="32dp"
         android:layout_gravity="center"
+        android:gravity="center"
         android:layout_marginBottom="@dimen/activity_vertical_margin"
         android:onClick="onBtnScanBlueClient"
+        android:paddingTop="0dp"
+        android:paddingBottom="0dp"
+        android:paddingLeft="@dimen/activity_horizontal_margin"
+        android:paddingRight="@dimen/activity_horizontal_margin"
         android:text="扫描周围蓝牙设备"
-        android:textSize="24dp" />
+        android:textSize="16dp"
+        android:textColor="#FFFFFF"
+        android:background="@drawable/blue_border_radius_5dp"/>
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="24dp"
         android:gravity="center_vertical"
-        android:text="蓝牙列表："
+        android:text="列表："
         android:textSize="16dp" />
 
     <GridLayout
@@ -43,12 +50,30 @@
             android:layout_height="match_parent" />
     </GridLayout>
 
-    <TextView
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="24dp"
+        android:orientation="horizontal"
+        android:layout_marginBottom="@dimen/activity_title_margin">
+    <TextView
+        android:layout_width="0dp"
+        android:layout_weight="1"
+        android:layout_height="match_parent"
         android:gravity="center_vertical"
         android:text="日志："
         android:textSize="16dp" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:text="清除"
+            android:textSize="14dp"
+            android:textColor="#FFFFFF"
+            android:gravity="center_vertical"
+            android:paddingLeft="@dimen/activity_horizontal_margin"
+            android:paddingRight="@dimen/activity_horizontal_margin"
+            android:background="@drawable/blue_border_radius_5dp"
+            android:onClick="onClearLog"/>
+    </LinearLayout>
 
     <ScrollView
         android:layout_width="match_parent"

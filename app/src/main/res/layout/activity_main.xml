@@ -15,18 +15,28 @@
     <Button
         android:id="@+id/btn_main_central"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="32dp"
+        android:gravity="center"
         android:layout_marginBottom="@dimen/activity_vertical_margin"
         android:onClick="onCentralClick"
         android:text="@string/central"
-        android:textSize="16dp" />
+        android:textSize="16dp"
+        android:textColor="#FFFFFF"
+        android:paddingLeft="@dimen/activity_horizontal_margin"
+        android:paddingRight="@dimen/activity_horizontal_margin"
+        android:background="@drawable/blue_border_radius_5dp"/>
 
     <Button
         android:id="@+id/btn_main_perpheral"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="32dp"
+        android:gravity="center"
         android:onClick="onPerpheralClick"
         android:text="@string/peripheral"
-        android:textSize="16dp" />
+        android:textSize="16dp"
+        android:textColor="#FFFFFF"
+        android:paddingLeft="@dimen/activity_horizontal_margin"
+        android:paddingRight="@dimen/activity_horizontal_margin"
+        android:background="@drawable/blue_border_radius_5dp"/>
 
 </LinearLayout>

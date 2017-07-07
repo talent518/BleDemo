@@ -1,7 +1,6 @@
 package com.espacetime.bledemo;
 
 import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothClass;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCharacteristic;
@@ -22,7 +21,6 @@ import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.ParcelUuid;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.TextView;
@@ -35,10 +33,6 @@ import java.util.UUID;
  */
 
 public class PeripheralActivity extends AppCompatActivity {
-    public static final UUID SERVICE_UUID = fromShortValue(BluetoothClass.Device.WEARABLE_GLASSES);
-    public static final UUID READ_UUID = fromShortValue(BluetoothClass.Device.Major.WEARABLE | 0x20);
-    public static final UUID WRITE_UUID = fromShortValue(BluetoothClass.Device.Major.WEARABLE | 0x21);
-
     BluetoothManager mBluetoothManager;
     BluetoothGattServer bluetoothGattServer;
     BluetoothAdapter mBluetoothAdapter;
@@ -51,124 +45,6 @@ public class PeripheralActivity extends AppCompatActivity {
     TextView tv;
 
     Handler handler;
-
-    @Override
-    protected void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_peripheral);
-
-        handler = new Handler(getMainLooper());
-
-        tv = (TextView) findViewById(R.id.tv_peripherial);
-
-        mBluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
-
-        mBluetoothAdapter = mBluetoothManager.getAdapter();
-
-        if (!mBluetoothAdapter.isEnabled()) {
-            throw new UnsupportedOperationException("Bluetooth is disabled.");
-        }
-
-        if (!mBluetoothAdapter.isMultipleAdvertisementSupported()) {
-            throw new UnsupportedOperationException("Bluetooth LE Advertising not supported on this device.");
-        }
-
-        bluetoothGattServer = mBluetoothManager.openGattServer(this, bluetoothGattServerCallback);
-
-        readCharacteristic = new BluetoothGattCharacteristic(READ_UUID, BluetoothGattCharacteristic.PROPERTY_READ, BluetoothGattCharacteristic.PERMISSION_READ);
-        writeCharacteristic = new BluetoothGattCharacteristic(WRITE_UUID, BluetoothGattCharacteristic.PROPERTY_WRITE, BluetoothGattCharacteristic.PERMISSION_WRITE);
-        service = new BluetoothGattService(SERVICE_UUID, BluetoothGattService.SERVICE_TYPE_PRIMARY);
-        while (!service.addCharacteristic(readCharacteristic)) ;
-        while (!service.addCharacteristic(writeCharacteristic)) ;
-        bluetoothGattServer.addService(service);
-
-        mBluetoothLeAdvertiser = mBluetoothAdapter.getBluetoothLeAdvertiser();
-
-        AdvertiseSettings settings = new AdvertiseSettings.Builder()
-                .setTxPowerLevel(AdvertiseSettings.ADVERTISE_TX_POWER_HIGH)
-                .setConnectable(true)
-                .setTimeout(0)
-                .setAdvertiseMode(AdvertiseSettings.ADVERTISE_MODE_LOW_LATENCY)
-                .build();
-
-        AdvertiseData advertiseData = new AdvertiseData.Builder()
-                .setIncludeTxPowerLevel(false)
-                .setIncludeDeviceName(true)
-                .addServiceUuid(new ParcelUuid(SERVICE_UUID))
-                .addServiceUuid(new ParcelUuid(READ_UUID))
-                .addServiceUuid(new ParcelUuid(WRITE_UUID))
-                .build();
-
-        AdvertiseData scanResponse = new AdvertiseData.Builder()
-                .addServiceUuid(new ParcelUuid(SERVICE_UUID))
-                .addServiceUuid(new ParcelUuid(READ_UUID))
-                .addServiceUuid(new ParcelUuid(WRITE_UUID))
-                .build();
-
-        mBluetoothLeAdvertiser.startAdvertising(settings, advertiseData, scanResponse, mAdvertiseCallback);
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-
-        mBluetoothLeAdvertiser.stopAdvertising(mAdvertiseCallback);
-        bluetoothGattServer.close();
-    }
-
-    private static final String UUID_LONG_STYLE_PREFIX = "0000";
-    private static final String UUID_LONG_STYLE_POSTFIX = "-0000-1000-8000-00805F9B34FB";
-
-    public static UUID fromShortValue(final int uuidShortValue) {
-        return UUID.fromString(UUID_LONG_STYLE_PREFIX + String.format("%04X", uuidShortValue & 0xffff) + UUID_LONG_STYLE_POSTFIX);
-    }
-
-    /**
-     * check if full style or short (16bits) style UUID matches
-     *
-     * @param src the UUID to be compared
-     * @param dst the UUID to be compared
-     * @return true if the both of UUIDs matches
-     */
-    public static boolean matches(@NonNull final UUID src, @NonNull final UUID dst) {
-        if (isShortUuid(src) || isShortUuid(dst)) {
-            // at least one instance is short style: check only 16bits
-            final long srcShortUUID = src.getMostSignificantBits() & 0x0000ffff00000000L;
-            final long dstShortUUID = dst.getMostSignificantBits() & 0x0000ffff00000000L;
-
-            return srcShortUUID == dstShortUUID;
-        } else {
-            return src.equals(dst);
-        }
-    }
-
-    /**
-     * Check if the specified UUID style is short style.
-     *
-     * @param src the UUID
-     * @return true if the UUID is short style
-     */
-    private static boolean isShortUuid(@NonNull final UUID src) {
-        return (src.getMostSignificantBits() & 0xffff0000ffffffffL) == 0L && src.getLeastSignificantBits() == 0L;
-    }
-
-    private static String bytes2hex(byte[] bytes) {
-        if (bytes == null) {
-            return null;
-        }
-
-        StringBuilder sb = new StringBuilder();
-        for (byte i : bytes) {
-            sb.append(" ");
-            sb.append(String.format("%02x", i));
-            if (i >= 0x21 && i <= 0x7e) {
-                sb.append(String.format("(%c)", i));
-            }
-        }
-
-        return sb.substring(1);
-    }
-
     private AdvertiseCallback mAdvertiseCallback = new AdvertiseCallback() {
         @Override
         public void onStartSuccess(AdvertiseSettings settingsInEffect) {
@@ -190,8 +66,9 @@ public class PeripheralActivity extends AppCompatActivity {
             });
         }
     };
-
     private BluetoothGattServerCallback bluetoothGattServerCallback = new BluetoothGattServerCallback() {
+        private byte[] recvs = new byte[]{0x4f, 0x4b};
+
         @Override
         public void onConnectionStateChange(final BluetoothDevice device, final int status, final int newState) {
             // 连接状态改变
@@ -280,8 +157,6 @@ public class PeripheralActivity extends AppCompatActivity {
             });
         }
 
-        private byte[] recvs = new byte[]{0x4f, 0x4b};
-
         @Override
         public void onCharacteristicReadRequest(BluetoothDevice device, final int requestId, int offset, BluetoothGattCharacteristic characteristic) {
             // 远程设备请求读取数据
@@ -291,7 +166,7 @@ public class PeripheralActivity extends AppCompatActivity {
                     try {
                         tv.append(String.format("响应(%d): %s\n\n", requestId, new String(recvs, "utf-8")));
                     } catch (UnsupportedEncodingException e) {
-                        tv.append(String.format("响应(%d): %s\n\n", requestId, bytes2hex(recvs)));
+                        tv.append(String.format("响应(%d): %s\n\n", requestId, MiscHelper.bytes2hex(recvs)));
                     }
                 }
             });
@@ -313,7 +188,7 @@ public class PeripheralActivity extends AppCompatActivity {
                     try {
                         tv.append(String.format("请求(%d): %s\n\n", requestId, new String(value, "utf-8")));
                     } catch (UnsupportedEncodingException e) {
-                        tv.append(String.format("请求(%d): %s\n\n", requestId, bytes2hex(value)));
+                        tv.append(String.format("请求(%d): %s\n\n", requestId, MiscHelper.bytes2hex(value)));
                     }
                 }
             });
@@ -334,7 +209,7 @@ public class PeripheralActivity extends AppCompatActivity {
             handler.post(new Runnable() {
                 @Override
                 public void run() {
-                    tv.append(String.format("onDescriptorReadRequest: name(%s), address(%s), requestId(%d), offset(%d), descriptor(%s)\n\n", device.getName(), device.getAddress(), requestId, offset, bytes2hex(descriptor.getValue())));
+                    tv.append(String.format("onDescriptorReadRequest: name(%s), address(%s), requestId(%d), offset(%d), descriptor(%s)\n\n", device.getName(), device.getAddress(), requestId, offset, MiscHelper.bytes2hex(descriptor.getValue())));
                 }
             });
         }
@@ -345,7 +220,7 @@ public class PeripheralActivity extends AppCompatActivity {
             handler.post(new Runnable() {
                 @Override
                 public void run() {
-                    tv.append(String.format("onDescriptorWriteRequest: name(%s), address(%s), requestId(%d), descriptor(%s), preparedWrite(%b), responseNeeded(%b), offset(%d), value(%s)\n\n", device.getName(), device.getAddress(), requestId, bytes2hex(descriptor.getValue()), preparedWrite, responseNeeded, offset, bytes2hex(value)));
+                    tv.append(String.format("onDescriptorWriteRequest: name(%s), address(%s), requestId(%d), descriptor(%s), preparedWrite(%b), responseNeeded(%b), offset(%d), value(%s)\n\n", device.getName(), device.getAddress(), requestId, MiscHelper.bytes2hex(descriptor.getValue()), preparedWrite, responseNeeded, offset, MiscHelper.bytes2hex(value)));
                 }
             });
         }
@@ -383,4 +258,68 @@ public class PeripheralActivity extends AppCompatActivity {
             });
         }
     };
+
+    @Override
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_peripheral);
+
+        handler = new Handler(getMainLooper());
+
+        tv = (TextView) findViewById(R.id.tv_peripherial);
+
+        mBluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
+
+        mBluetoothAdapter = mBluetoothManager.getAdapter();
+
+        if (!mBluetoothAdapter.isEnabled()) {
+            mBluetoothAdapter.enable();
+        }
+
+        if (!mBluetoothAdapter.isMultipleAdvertisementSupported()) {
+            throw new UnsupportedOperationException("Bluetooth LE Advertising not supported on this device.");
+        }
+
+        bluetoothGattServer = mBluetoothManager.openGattServer(this, bluetoothGattServerCallback);
+
+        readCharacteristic = new BluetoothGattCharacteristic(Settings.READ_UUID, BluetoothGattCharacteristic.PROPERTY_READ, BluetoothGattCharacteristic.PERMISSION_READ);
+        writeCharacteristic = new BluetoothGattCharacteristic(Settings.WRITE_UUID, BluetoothGattCharacteristic.PROPERTY_WRITE, BluetoothGattCharacteristic.PERMISSION_WRITE);
+        service = new BluetoothGattService(Settings.SERVICE_UUID, BluetoothGattService.SERVICE_TYPE_PRIMARY);
+        while (!service.addCharacteristic(readCharacteristic)) ;
+        while (!service.addCharacteristic(writeCharacteristic)) ;
+        bluetoothGattServer.addService(service);
+
+        mBluetoothLeAdvertiser = mBluetoothAdapter.getBluetoothLeAdvertiser();
+
+        AdvertiseSettings settings = new AdvertiseSettings.Builder()
+                .setTxPowerLevel(AdvertiseSettings.ADVERTISE_TX_POWER_HIGH)
+                .setConnectable(true)
+                .setTimeout(0)
+                .setAdvertiseMode(AdvertiseSettings.ADVERTISE_MODE_LOW_LATENCY)
+                .build();
+
+        AdvertiseData advertiseData = new AdvertiseData.Builder()
+                .setIncludeTxPowerLevel(false)
+                .setIncludeDeviceName(true)
+                .addServiceUuid(new ParcelUuid(Settings.SERVICE_UUID))
+                .addServiceUuid(new ParcelUuid(Settings.READ_UUID))
+                .addServiceUuid(new ParcelUuid(Settings.WRITE_UUID))
+                .build();
+
+        AdvertiseData scanResponse = new AdvertiseData.Builder()
+                .addServiceUuid(new ParcelUuid(Settings.SERVICE_UUID))
+                .addServiceUuid(new ParcelUuid(Settings.READ_UUID))
+                .addServiceUuid(new ParcelUuid(Settings.WRITE_UUID))
+                .build();
+
+        mBluetoothLeAdvertiser.startAdvertising(settings, advertiseData, scanResponse, mAdvertiseCallback);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        mBluetoothLeAdvertiser.stopAdvertising(mAdvertiseCallback);
+        bluetoothGattServer.close();
+    }
 }
