@@ -23,6 +23,7 @@ import android.os.Handler;
 import android.os.ParcelUuid;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
+import android.view.View;
 import android.widget.TextView;
 
 import java.io.UnsupportedEncodingException;
@@ -277,7 +278,7 @@ public class PeripheralActivity extends AppCompatActivity {
         }
 
         if (!mBluetoothAdapter.isMultipleAdvertisementSupported()) {
-            throw new UnsupportedOperationException("Bluetooth LE Advertising not supported on this device.");
+            tv.append("Bluetooth LE Advertising not supported on this device.\n\n");
         }
 
         bluetoothGattServer = mBluetoothManager.openGattServer(this, bluetoothGattServerCallback);
@@ -321,5 +322,9 @@ public class PeripheralActivity extends AppCompatActivity {
 
         mBluetoothLeAdvertiser.stopAdvertising(mAdvertiseCallback);
         bluetoothGattServer.close();
+    }
+
+    public void onCleanLog(View view) {
+        tv.setText("");
     }
 }
