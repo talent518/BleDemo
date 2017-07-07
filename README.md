@@ -1,5 +1,7 @@
 # BleDemo
+```
 基本的数据的收发功能。
+```
   * 外围设备(Peripheral)
   * 中心设备(Central)
 
