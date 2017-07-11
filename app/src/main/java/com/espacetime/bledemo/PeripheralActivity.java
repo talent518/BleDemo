@@ -87,7 +87,6 @@ public class PeripheralActivity extends AppCompatActivity {
                             @Override
                             public void onReceive(final Context context, final Intent intent) {
                                 final String action = intent.getAction();
-                                tv.append("onConnectionStateChange: onReceive action: " + action + "\n\n");
 
                                 if (BluetoothDevice.ACTION_BOND_STATE_CHANGED.equals(action)) {
                                     final int state = intent.getIntExtra(BluetoothDevice.EXTRA_BOND_STATE, BluetoothDevice.ERROR);
@@ -115,6 +114,8 @@ public class PeripheralActivity extends AppCompatActivity {
                                             tv.append("onConnectionStateChange: BOND_STATE: unknown\n\n");
                                             break;
                                     }
+                                } else {
+                                    tv.append("onConnectionStateChange: " + action + "\n\n");
                                 }
                             }
                         }, new IntentFilter(BluetoothDevice.ACTION_BOND_STATE_CHANGED));
