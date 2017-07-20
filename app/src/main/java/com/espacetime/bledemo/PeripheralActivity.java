@@ -79,6 +79,12 @@ public class PeripheralActivity extends AppCompatActivity {
                     tv.append(String.format("onConnectionStateChange: name(%s), address(%s), status(%d), newState(%d), UUID(%s)\n\n", device.getName(), device.getAddress(), status, newState, service.getUuid()));
                 }
             });
+
+//          如果只与IOS(Apple)设备连接时只使用如下注释代码即可，把 switch (newState) { ... } 语句及语句体全删除即可正常使用，不然会报配对异常：device.setPairingConfirmation(true);
+//          if(newState == BluetoothProfile.STATE_CONNECTED) {
+//              bluetoothGattServer.connect(device, true);
+//          }
+
             switch (newState) {
                 case BluetoothProfile.STATE_CONNECTED:
                     // check bond status
