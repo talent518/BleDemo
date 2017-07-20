@@ -29,7 +29,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
 
 public class CentralActivity extends AppCompatActivity {
     private static final String[] DeviceMajors = new String[]{
@@ -40,6 +39,9 @@ public class CentralActivity extends AppCompatActivity {
     };
     // 蓝牙相关
     private static final long SCAN_PERIOD = 10000; // 10秒
+    public BluetoothGattService mService = null;
+    public BluetoothGattCharacteristic mReadCharacteristic = null;
+    public BluetoothGattCharacteristic mWriteCharacteristic = null;
     Button mBtnScanBlue;
     GridView mGvDevice;
     TextView mTvLog;
@@ -49,18 +51,14 @@ public class CentralActivity extends AppCompatActivity {
     BluetoothAdapter mBluetoothAdapter;
     BluetoothLeScanner mBluetoothLeScanner;
     boolean mScanning = false;
-
     ArrayList<ScanResult> mScanResults = new ArrayList<ScanResult>();
     HashMap<String, Boolean> mAddressMap = new HashMap<String, Boolean>();
-
     BluetoothGatt mBluetoothGatt = null;
     boolean isAutoConnect = true;
-
-    public BluetoothGattService mService = null;
-    public BluetoothGattCharacteristic mReadCharacteristic = null;
-    public BluetoothGattCharacteristic mWriteCharacteristic = null;
-
     private android.bluetooth.BluetoothGattCallback mGattCallback = new BluetoothGattCallback() {
+        private boolean isReaded = false;
+        private boolean isWrited = false;
+
         @Override
         public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
             switch (newState) {
@@ -77,7 +75,7 @@ public class CentralActivity extends AppCompatActivity {
                 case BluetoothProfile.STATE_DISCONNECTED:
                     log("onConnectionStateChange: Disconnected");
 
-                    if(isAutoConnect) {
+                    if (isAutoConnect) {
                         log("AutoConnecting");
                         gatt.connect();
                     }
@@ -89,12 +87,12 @@ public class CentralActivity extends AppCompatActivity {
         public void onServicesDiscovered(BluetoothGatt gatt, int status) {
             log("onServicesDiscovered: status = " + status);
 
-            if(BluetoothGatt.GATT_SUCCESS != status) {
+            if (BluetoothGatt.GATT_SUCCESS != status) {
                 return;
             }
 
             mService = gatt.getService(Settings.SERVICE_UUID);
-            if(mService == null) {
+            if (mService == null) {
                 return;
             }
 
@@ -104,13 +102,11 @@ public class CentralActivity extends AppCompatActivity {
             log("mReadCharacteristic: " + mBluetoothGatt.readCharacteristic(mReadCharacteristic));
         }
 
-        private boolean isReaded = false;
-
         @Override
         public void onCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
             log("onCharacteristicRead: characteristic = " + MiscHelper.bytes2hex(characteristic.getValue()) + ", status = " + status);
 
-            if(!isReaded) {
+            if (!isReaded) {
                 isReaded = true;
                 try {
                     mWriteCharacteristic.setValue(0, BluetoothGattCharacteristic.FORMAT_UINT8, 0);
@@ -122,13 +118,11 @@ public class CentralActivity extends AppCompatActivity {
             }
         }
 
-        private boolean isWrited = false;
-
         @Override
         public void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
             log("onCharacteristicWrite: characteristic = " + MiscHelper.bytes2hex(characteristic.getValue()) + ", status = " + status);
 
-            if(!isWrited) {
+            if (!isWrited) {
                 isWrited = true;
                 log("mReadCharacteristic: " + mBluetoothGatt.readCharacteristic(mReadCharacteristic));
             }
@@ -164,7 +158,6 @@ public class CentralActivity extends AppCompatActivity {
             log("onReadRemoteRssi: mtu = " + mtu + ", status = " + status);
         }
     };
-
     // 单击某个列表选项的事件
     private AdapterView.OnItemClickListener onLvDeviceItemClickListener = new AdapterView.OnItemClickListener() {
         @Override
@@ -174,8 +167,8 @@ public class CentralActivity extends AppCompatActivity {
 
             mBluetoothGatt = result.getDevice().connectGatt(CentralActivity.this, false, mGattCallback);
 
-            for(int i = 0; i<parent.getCount(); i++) {
-                if(position == i) {
+            for (int i = 0; i < parent.getCount(); i++) {
+                if (position == i) {
                     view.setBackgroundColor(0xFFCCCCCC);
                 } else {
                     parent.getChildAt(i).setBackgroundColor(Color.TRANSPARENT);
@@ -183,7 +176,6 @@ public class CentralActivity extends AppCompatActivity {
             }
         }
     };
-
     // 蓝牙扫描事件
     private ScanCallback mScanCallback = new ScanCallback() {
         @Override
@@ -283,7 +275,7 @@ public class CentralActivity extends AppCompatActivity {
         }
 
         isAutoConnect = false;
-        if(mBluetoothGatt != null) {
+        if (mBluetoothGatt != null) {
             mBluetoothGatt.disconnect();
             mBluetoothGatt.close();
             mBluetoothGatt = null;
